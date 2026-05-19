@@ -3,12 +3,14 @@ package com.teamtask.config;
 import com.teamtask.security.JwtAuthFilter;
 import com.teamtask.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,24 +32,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-    	  http
-          .cors(cors -> {})
-          .csrf(csrf -> csrf.disable())
-          .authorizeHttpRequests(auth -> auth
-                  .requestMatchers("/api/auth/**").permitAll()
-                  .requestMatchers("/api/projects/**").authenticated()
-                  .requestMatchers("/api/tasks/**").authenticated()
-                  .requestMatchers("/api/dashboard/**").authenticated()
-                  .requestMatchers("/api/users/**").authenticated()
-                  .anyRequest().authenticated()
-          )
-          .sessionManagement(session ->
-                  session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-          )
-          .authenticationProvider(authenticationProvider())
-          .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/projects/**").authenticated()
+                        .requestMatchers("/api/tasks/**").authenticated()
+                        .requestMatchers("/api/dashboard/**").authenticated()
+                        .requestMatchers("/api/users/**").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-  return http.build();
+        return http.build();
     }
 
     @Bean
